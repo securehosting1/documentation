@@ -1,0 +1,243 @@
+INSTALL BOTPRESS THE BEST AI CHATBOT SOFTWARE GLOBALLY:
+
+copy pasting commands that have already been pasted does not matter just copy-paste, it will not break anything. Of course, edit if needed for the password bit just edit those and that is it!
+
+Terminal login to ssh and run these commands
+
+Do the following commands on Ubuntu 22 or 20(64bit):
+
+sudo apt update -y
+
+sudo apt-get update -y
+
+mkdir botpress
+
+cd botpress
+
+wget https://s3.amazonaws.com/botpress-binaries/botpress-v12_30_5-linux-x64.zip
+
+unzip botpress-v12_30_5-linux-x64.zip
+
+./bp
+
+That's it! Yes, the Botpress server is now running at http://localhost:3000 http://yourserverip:3000
+
+
+
+Terminal
+PostgreSQL can be easily installed using the command:
+
+sudo apt update && sudo apt install postgresql
+
+Note: You can also install the optional package, “postgresql-contrib” but it’s not necessary. I haven’t found any benefit to installing it because all we’ll be doing is creating a PostgreSQL user and database.
+
+Now we need to create a PostgreSQL user and database. Use the following command to switch to the PostgreSQL ‘postgres’ user account.
+
+sudo su postgres -
+
+To enter PostgreSQL we then type the following:
+
+psql
+
+The Terminal prompt should now look like this:
+
+postgres=#
+
+Great! In order to create our Botpress user, we use the syntax:
+
+
+
+CREATE USER botpressuser WITH PASSWORD ‘yourpasswordhere’;
+
+
+
+Almost there! To create the database, we use:
+
+
+
+CREATE DATABASE botpressdb;
+
+
+
+It’s important to note the username does not have quotations, but the password does. Personally, I prefer only including alphanumeric characters (letters and numbers) in the password so you don’t have to worry about escaping any characters. Also, make sure you put the semicolon at the end of the command. Note down these details because we need them later. To exit PostgreSQL type:
+
+\q
+
+and then:
+
+exit
+
+to return to our normal Terminal prompt.
+
+
+
+We’ve created a PostgreSQL user and database, but Botpress doesn’t know about it. Let’s tell Botpress where it can find this information – and to use it! In order to do this we need to create an environment file in the extracted directory of Botpress (the same folder where the “bp” executable file is). Type the following:
+
+nano .env
+
+This creates a file called “.env” and opens it in the ‘nano’ text editor. Type the following:
+
+DATABASE_URL=postgres://botpressuser:yourpasswordhere@localhost:5432/botpressdb
+
+On the next line, put:
+
+BPFS_STORAGE=database
+
+and finally on the next line:
+
+AUTO_MIGRATE=true
+
+Close the file by pressing ‘CTRL + X’ and press ‘Y’ to accept the changes. That’s it! When you run
+
+./bp
+
+
+
+Setup SSL on Botpress
+
+Botpress ‘Production Checklist’
+
+If you followed the above steps yours will look different to this, but don’t fret because my installation is just configured differently!
+
+Thanks for reading and I hope this helped you!
+
+The featured image is from Botpress
+
+
+
+Confirm that everything is running correctly by running the command below:
+
+netstat -tulpn | grep LISTEN
+The output should look like this:
+
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      722/nginx: master p
+tcp        0      0 127.0.0.53:53           0.0.0.0:*               LISTEN      535/systemd-resolve
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      756/sshd
+tcp        0      0 0.0.0.0:443             0.0.0.0:*               LISTEN      722/nginx: master p
+tcp6       0      0 :::3000                 :::*                    LISTEN      13838/./bp
+You should see a list of running processes, which should include Botpress on the port of 3000. What we should do next, as part of the initial setup, is set up NGINX to run Botpress as a proxy. Ensure you have a domain pointed to your server for the next steps.
+
+Run the commands below to install NGINX if it is not installed already:
+
+sudo apt-get update
+sudo apt-get install nginx
+Check the available configurations for your firewall with this command:
+
+sudo ufw app list
+The output will be as follows:
+
+Output
+Available applications:
+  Nginx Full
+  Nginx HTTP
+  Nginx HTTPS
+  OpenSSH
+Next, enable NGINX with the following command:
+
+sudo ufw allow 'Nginx HTTP'
+
+Now copy paste these commands:
+
+sudo ufw allow 22
+sudo ufw enable﻿﻿
+
+
+Then, confirm the setting by running the command below:
+
+sudo ufw status
+With it installed, we'll need to also create a config file for our Botpress server. To do this, run the command below:
+
+cd /etc/nginx/sites-available
+Create a new file by running the following command.
+
+sudo nano kodeec.website
+Copy the following in the file and save it.
+
+server {
+    # listen on port 80 (http)
+    listen 80;
+    server_name kodeec.website 47.254.153.30 www.kodeec.website;
+
+    location / {
+        include proxy_params;
+        proxy_pass http://127.0.0.1:3000;
+    }
+}
+Enable the configuration with the following command.
+
+sudo ln -s /etc/nginx/sites-available/kodeec.website /etc/nginx/sites-enabled/
+Now you should be able to access 'kodeec.website' on your browser but it is still unsecure.
+
+To install SSL encryption for your website, we can use Let's Encrypt.
+
+To get started with this, install the dependencies with the following commands:
+
+sudo apt-get install software-properties-common
+sudo add-apt-repository universe
+sudo add-apt-repository ppa:certbot/certbot
+sudo apt-get install certbot python-certbot-nginx
+or
+sudo apt-get install certbot python3-certbot-nginx
+Once everything's installed and running, run the command below:
+
+sudo certbot --nginx
+Follow the prompt to generate a certificate for your domain.
+
+
+
+Finally, run the commands below to enable HTTPS encryption and reload NGINX.
+
+sudo ufw allow https
+sudo systemctl reload nginx
+After doing that, you should be able to access 'https://kodeec.website' on your browser. We have successfully installed and secured Botpress on a cloud KVM VPS server (Linux)
+
+
+
+To let the bp binary run after you leave the terminal, simply launch the commands:
+
+Installing and using PM2
+Install pm2 using the below command
+
+apt install npm
+
+npm install pm2 -g
+
+Start Botpress as a background process
+
+pm2 start './bp start -p'
+
+You can also use below commands to manage Botpress process, the option names are self-explanatory
+
+pm2 list
+
+pm2 logs
+
+pm2 start './bp start -p'
+
+pm2 reload './bp start -p'
+
+pm2 stop './bp start -p'
+
+pm2 delete './bp start -p'
+
+
+
+YOU MIGHT GET THIS ISSUE:
+
+CHAT BOT URL GOES TO localhost:3000 instead of the domain url:
+
+SOLVED:
+
+Use the web ui admin area of botpress and go to the code editor, if you do anything wrong in that code editor you will need to reinstall. I simply added https://example.domain.com inside the external URL "" bit. Before you say it, yes already tried editing files from the command line over ssh/terminal,
+
+Update Botpress easy! LInux Ubuntu cloud server vps kvm botpress update version how to:
+
+cd botpress
+
+wget https://s3.amazonaws.com/botpress-binaries/botpress-v12_30_6-linux-x64.zip
+
+unzip botpress-v12_30_6-linux-x64.zip
+
+./bp
+
+When asked in the terminal, replace All and yes to replace files, should be fine.
